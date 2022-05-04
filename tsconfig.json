@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+      "jsx": "react",
+      "target": "es6",
+      "module": "commonjs",
+      "sourceMap": true,
+      "baseUrl": "./dist/server",
+      "outDir": "../../dist",
+      "strict": true,
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "paths": {
+          "@shared/*": [
+              "../shared/*"
+          ]
+      }
+  },
+  "exclude": [
+      "**/*.test.ts"
+  ]
+}
