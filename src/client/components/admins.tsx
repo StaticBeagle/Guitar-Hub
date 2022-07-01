@@ -3,16 +3,16 @@ import Typography from '@material-ui/core/Typography';
 import Layout from './layout';
 import { useLocation } from "react-router-dom"
 
-const Users = () => {
+const Admins = () => {
     const location = useLocation();
     return (
         <Layout>
             <Typography variant="h4" gutterBottom>
-                Users
+                Admins
             </Typography>
             <hr />
         </Layout>
     )
 };
 
-export default Users;
+export default Admins;

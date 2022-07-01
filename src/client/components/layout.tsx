@@ -1,4 +1,5 @@
-import React, { FC, ReactNode, useEffect } from 'react';
+import React, { FC, ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
@@ -11,11 +12,14 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import LoginButton from "./login-button";
 import LogoutButton from "./logout-button";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth0, User } from "@auth0/auth0-react";
 import HomeIcon from '@material-ui/icons/Home';
 import { NavLink } from "react-router-dom";
 import PeopleIcon from '@material-ui/icons/People';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import { j } from "../jinaga-config";
+import { GuitarHubUser } from '../models/guitar-hub-user';
+import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 
 
 interface ChildrenProps {
@@ -50,18 +54,62 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+
+
 const Layout: FC<ChildrenProps> = ({ children }) => {
   const classes = useStyles();
   const { user, isAuthenticated, isLoading } = useAuth0();
-  if (isLoading) {
-    return <h1>Loading</h1>
+
+  const getUser = async (user: User) => {
+    const guitarHubUser = await j.exists({
+      type: "GuitarHub.User",
+      userName: user.nickname          // Where person is the result of a previous j.fact.
+    });
+    console.log(guitarHubUser);
   }
 
-  useEffect(() =>{
-    // check if the user exists
-    // if the use exists get the nickname
-    // if the user doesn't exists save it and get the nickname
-  });
+  const saveUser = async (user: User) => {
+    const guitarHubUser = await j.fact({
+      type: "GuitarHub.User",
+      userName: user.nickname || ''         // Where person is the result of a previous j.fact.
+    });
+    console.log(guitarHubUser);
+    console.log("Here")
+  }
+
+  //const [some, setSome] = useState(false)
+  // if (isLoading) {
+  //   console.log("here")
+  //   getUser();
+  //   return <h1>Loading</h1>
+  // }
+
+  if (!isLoading && user) {
+    console.log(getUser(user));
+    // const gg = saveUser(user).then(() => {
+    //   console.log(gg);
+    //   console.log(user);
+    // });
+  }
+
+
+
+
+
+  // useEffect(() => {
+  //   // check if the user exists
+  //   // if the use exists get the nickname
+  //   // if the user doesn't ex ists save it and get the nickname
+  //   //const users = User.userExists(user);
+
+  //   // const saveUser = async (user: User, j: Jinaga) => {
+  //   //   const guitarHubUser = j.fact({
+  //   //     type: "GuitarHub.User",
+  //   //     user: user          // Where person is the result of a previous j.fact.
+  //   //   });
+  //   // }
+  //   console.log("here")
+  // }, []);
 
   return (
     <div className={classes.root}>
@@ -104,6 +152,14 @@ const Layout: FC<ChildrenProps> = ({ children }) => {
               </ListItemIcon>
               <ListItemText primary={"Users"} />
             </ListItem>
+            {isAuthenticated && ( // is admin
+              <ListItem button component={NavLink} to={"/admins"}>
+                <ListItemIcon>
+                  <SupervisorAccountIcon />
+                </ListItemIcon>
+                <ListItemText primary={"Admins"} />
+              </ListItem>
+            )}
           </List>
         </div>
       </Drawer>
