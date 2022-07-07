@@ -1,6 +1,7 @@
 import { ensure, Jinaga as j } from "jinaga";
 import { Specification } from 'jinaga/dist/types/query/query-parser';
 import {Domain} from './domain';
+import {RadiusDeleted} from './radius-deleted';
 
 export class Radius {
     public static Type = "Domain.Radius" as const;
@@ -16,15 +17,16 @@ export class Radius {
     }
 
     static getAllAvailableRadii(domain: Domain) {
-        return j.match({
+        return j.match<Radius>({
             type: Radius.Type,
             domain
-        })
+        }).suchThat(j.not(Radius.isDeleted));
     }
 
-    // static userExists(u: GuitarHubUser) {
-    //     return j.exists<GuitarHubUser>({
-    //         type: GuitarHubUser.Type
-    //     })
-    // }
+    static isDeleted(radius: Radius) {
+        return j.exists({
+            type: RadiusDeleted.Type,
+            radius: radius
+        });
+    }
 }

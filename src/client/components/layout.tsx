@@ -23,6 +23,7 @@ import SupervisorAccountIcon from '@material-ui/icons/SupervisorAccount';
 
 
 interface ChildrenProps {
+  header: string;
   children: ReactNode;
 }
 
@@ -56,7 +57,7 @@ const useStyles = makeStyles((theme) => ({
 
 
 
-const Layout: FC<ChildrenProps> = ({ children }) => {
+const Layout: FC<ChildrenProps> = (props) => {
   const classes = useStyles();
   const { user, isAuthenticated, isLoading } = useAuth0();
 
@@ -165,7 +166,11 @@ const Layout: FC<ChildrenProps> = ({ children }) => {
       </Drawer>
       <main className={classes.content}>
         <Toolbar />
-        {children}
+        <Typography variant="h4" gutterBottom>
+          {props.header}
+        </Typography>
+        <hr />
+        {props.children}
       </main>
     </div>
   );

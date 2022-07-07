@@ -6,11 +6,7 @@ import { useLocation } from "react-router-dom"
 const Users = () => {
     const location = useLocation();
     return (
-        <Layout>
-            <Typography variant="h4" gutterBottom>
-                Users
-            </Typography>
-            <hr />
+        <Layout header="Users">
         </Layout>
     )
 };

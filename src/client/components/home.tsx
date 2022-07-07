@@ -1,87 +1,51 @@
 import React from 'react';
-import { useState } from 'react';
-import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button'
 import Layout from './layout';
-import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import { Radius } from '../models/radius';
-import { Domain } from '../models/domain';
-import { j } from '../jinaga-config';
+import Paper from '@material-ui/core/Paper';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import TabPanel from '../components/tab-panel';
+import AdminRadii from './admin-radii';
+
 const Home = () => {
 
-    const [radiiInputxText, setRadiiInputxText] = useState('');
+    const [value, setValue] = React.useState(0);
 
-    const handleRadiiTextInputChange = (event: any) => {
-        setRadiiInputxText(event.target.value);
+    const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
+        setValue(newValue);
     };
-
-    const domain = Domain.Instance;
-
-    const handleAddRadius = async () => {
-        await j.fact(new Radius(radiiInputxText, new Date(), domain))
-        setOpen(false);
-    }
-
-    const getAvailableRadiiHandler = async () => {
-        j.query(domain, j.for(Radius.getAllAvailableRadii)).then(value => console.log(value));
-    }
-
-    const [open, setOpen] = React.useState(false);
-
-    const handleClickOpen = () => {
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    // return (
-    //     <div>
-    //         <Button variant="outlined" onClick={handleClickOpen}>
-    //             Open form dialog
-    //         </Button>
-
-    //     </div>
-    // );
 
     return (
-        <Layout>
-            <Typography variant="h4" gutterBottom>
-                Home
-            </Typography>
-            <hr />
-            <Button onClick={handleClickOpen}>Add radius</Button>
-            <Button onClick={getAvailableRadiiHandler}>Get all Radii</Button>
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Add Radius</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Radii can be compound or straight.
-                    </DialogContentText>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        label="Radius"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        onInput={handleRadiiTextInputChange}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button onClick={handleAddRadius}>Add</Button>
-                </DialogActions>
-            </Dialog>
+        <Layout header="Home">
+            <Paper square>
+                <Tabs
+                    value={value}
+                    indicatorColor="primary"
+                    textColor="primary"
+                    onChange={handleChange}
+                    aria-label="disabled tabs example"
+                >
+                    <Tab label="Radii" />
+                    <Tab label="Woods" />
+                    <Tab label="Scales" />
+                </Tabs>
+            </Paper>
+            <TabPanel value={value} index={0}>
+                <AdminRadii />
+            </TabPanel>
         </Layout>
     )
 };
+
+// const cyrb53 = function(str, seed = 0) {
+//     let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+//     for (let i = 0, ch; i < str.length; i++) {
+//         ch = str.charCodeAt(i);
+//         h1 = Math.imul(h1 ^ ch, 2654435761);
+//         h2 = Math.imul(h2 ^ ch, 1597334677);
+//     }
+//     h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+//     h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+//     return 4294967296 * (2097151 & h2) + (h1>>>0);
+// };
 
 export default Home;
