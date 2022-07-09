@@ -1,5 +1,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+// webpack.config.js
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
     // Inputs
@@ -22,6 +24,7 @@ module.exports = {
             publicPath: "/scripts/",
             filename: "../server/[name].html",
         }),
+        new Dotenv(),
     ],
     module: {
         rules: [{

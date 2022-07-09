@@ -8,8 +8,8 @@ import { BrowserRouter} from "react-router-dom";
 ReactDOM.render(
   <BrowserRouter>
     <Auth0Provider
-      domain="dev-xw76qwp3.us.auth0.com"
-      clientId="SLLZB8nRjEcAcxhcZPOR9OYFVp2Gx8T1"
+      domain={process.env.REACT_APP_DOMAIN || ""}
+      clientId={process.env.REACT_APP_CLIENT_ID || ""}
       redirectUri={window.location.origin}
     >
       <App />

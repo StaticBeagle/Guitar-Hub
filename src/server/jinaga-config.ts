@@ -23,8 +23,7 @@ import { Express, Handler } from 'express';
 // }
 
 export function configureJinaga(app: Express) {
-  const pgConnection = process.env.JINAGA_POSTGRESQL ||
-        'postgresql://dev:devpw@localhost:5432/myapplication';
+  const pgConnection = process.env.GUITAR_HUB_POSTGRESQL;
   const { handler } = JinagaServer.create({
     pgKeystore: pgConnection,
     pgStore: pgConnection,
