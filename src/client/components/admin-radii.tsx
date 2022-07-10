@@ -59,14 +59,17 @@ const AdminRadii = () => {
         setRadiiInputxText(event.target.value);
     };
 
-    const handleAddRadius = async () => {
+    const handleAddRadius = async (event: { preventDefault: () => void; }) => {
+        event.preventDefault();
         if (tableData.some((radius: Radius) => radius.radius === radiiInputxText)) {
             alert('Radius already exists!'); // Remove the alert and use maybe a snackbar or better notification
         } else {
             await j.fact(new Radius(radiiInputxText, new Date(), domain));
             fetchAllRadii().then(radii => setTableData(radii));
+            // TODO
+            // Display sucess message or snackbar
+            setOpen(false);
         }
-        setOpen(false);
     }
 
     const handleDeleteRadius = async (radius: Radius) => {
@@ -134,27 +137,30 @@ const AdminRadii = () => {
                 columns={columns}
                 pageSize={10}
             />
-            <Dialog open={open} onClose={handleClose}>
-                <DialogTitle>Add Radius</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Radii can be compound or straight.
-                    </DialogContentText>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        label="Radius"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        onInput={handleRadiiTextInputChange}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleClose}>Cancel</Button>
-                    <Button onClick={handleAddRadius} type="submit">Add</Button>
-                </DialogActions>
+            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth={true}>
+                <form onSubmit={handleAddRadius}>
+                    <DialogTitle>Add Radius</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            Radii can be compound or straight.
+                        </DialogContentText>
+                        <TextField
+                            autoFocus
+                            margin="dense"
+                            id="name"
+                            label="Radius"
+                            type="text"
+                            fullWidth
+                            variant="standard"
+                            onInput={handleRadiiTextInputChange}
+                            required
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleClose}>Cancel</Button>
+                        <Button type="submit">Add</Button>
+                    </DialogActions>
+                </form>
             </Dialog>
         </div>
     );
