@@ -17,6 +17,8 @@ import { Radius } from '../models/radius';
 import { Domain } from '../models/domain';
 import { j } from '../jinaga-config';
 import { RadiusDeleted } from '../models/radius-deleted';
+import SnackBarAlert from './snack-bar-alert';
+import type { Color } from '@material-ui/lab/Alert'
 
 const useStyles = makeStyles(() => ({
     table: {
@@ -56,20 +58,28 @@ const AdminRadii = () => {
             setTableDataIsLoading(false);
         });
     });
+    const [openSnackBarAlert, setOpenSnackBarAlert] = useState(false);
+    const [snackBarAlertMessage, setSnackBarAlertMessage] = useState("");
+    const [snackBarAlertSeverity, setSnackBarAlertSeverity] = useState<Color | undefined>("info");
 
     const handleRadiiTextInputChange = (event: any) => {
         setRadiiInputxText(event.target.value);
     };
+    
+    const displayAlert = (message: string, severity: Color) => {
+        setSnackBarAlertMessage(message);
+        setSnackBarAlertSeverity(severity);
+        setOpenSnackBarAlert(true);
+    }
 
     const handleSubmitAddRadius = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
         if (tableData.some((radius: Radius) => radius.radius === radiiInputxText)) {
-            alert('Radius already exists!'); // Remove the alert and use maybe a snackbar or better notification
+            displayAlert('Radius already exists!', 'error');
         } else {
             await j.fact(new Radius(radiiInputxText, new Date(), domain));
             fetchAllRadii().then(radii => setTableData(radii));
-            // TODO
-            // Display sucess message or snackbar
+            displayAlert('Radius added successfully', 'success');
             setOpen(false);
         }
     }
@@ -79,6 +89,7 @@ const AdminRadii = () => {
         await j.fact(new RadiusDeleted(selectedRadius, new Date()));
         fetchAllRadii().then(radii => setTableData(radii));
         setSelectedRadius(new Radius("", new Date(), domain));
+        displayAlert('Radius deleted successfully', 'success');
         setOpenDeleteConfirmDialog(false);
     }
 
@@ -97,6 +108,13 @@ const AdminRadii = () => {
 
     const handleCloseDeleteConfirmDialog = () => {
         setOpenDeleteConfirmDialog(false);
+    };
+
+    const handleCloseSnackBarAlert = (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackBarAlert(false);
     };
 
     const columns = [
@@ -190,6 +208,12 @@ const AdminRadii = () => {
                     </DialogActions>
                 </form>
             </Dialog>
+            <SnackBarAlert
+                open={openSnackBarAlert}
+                message={snackBarAlertMessage}
+                severity={snackBarAlertSeverity}
+                handleClose={handleCloseSnackBarAlert}
+            />
         </div>
     );
 }
