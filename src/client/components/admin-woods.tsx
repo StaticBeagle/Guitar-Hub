@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -10,18 +10,13 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import { makeStyles } from '@material-ui/core/styles';
 import { IconButton } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { DataGrid } from '@material-ui/data-grid';
 import { Domain } from '../models/domain';
 import { j } from '../jinaga-config';
 import { Wood } from '../models/wood';
-
-import FormLabel from '@material-ui/core/FormLabel';
-import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormHelperText from '@material-ui/core/FormHelperText';
 import Checkbox from '@material-ui/core/Checkbox';
 import { WoodDeleted } from '../models/wood-deleted';
 
@@ -55,17 +50,19 @@ const AdminWoods = () => {
     const [open, setOpen] = useState(false);
     const [woodsInputxText, setWoodsInputxText] = useState('');
     const [tableDataIsLoading, setTableDataIsLoading] = useState(true);
-    const [tableData, setTableData] = useState<any>(() => {
-        fetchAllWoods().then(woods => {
-            setTableData(woods);
-            setTableDataIsLoading(false);
-        });
-    });
+    const [tableData, setTableData] = useState<Wood[]>([]);
     const [checkBoxStates, setCheckBoxStates] = React.useState({
         checkedBody: true,
         checkedNeck: false,
         checkedLaminatedTop: false,
     });
+
+    useEffect(() => {
+        fetchAllWoods().then(woods => {
+            setTableData(woods);
+            setTableDataIsLoading(false);
+        });
+    })
 
     const handleChangeCheckBoxes = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCheckBoxStates({ ...checkBoxStates, [event.target.name]: event.target.checked });
@@ -139,13 +136,10 @@ const AdminWoods = () => {
             flex: 1,
         },
         {
-            field: "Actions",
+            field: "Delete",
             renderCell: (cellValues: any) => {
                 return (
                     <>
-                        <IconButton>
-                            <EditIcon color="primary" onClick={() => console.log(cellValues.row.radius)} />
-                        </IconButton>
                         <IconButton>
                             <DeleteIcon color="secondary" onClick={() => handleDeleteWood(cellValues.row.wood)} />
                         </IconButton>
