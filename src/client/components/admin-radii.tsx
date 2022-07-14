@@ -1,5 +1,5 @@
 import React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button'
 import TextField from '@material-ui/core/TextField';
 import Dialog from '@material-ui/core/Dialog';
@@ -10,13 +10,14 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import { makeStyles } from '@material-ui/core/styles';
 import { IconButton } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
-import EditIcon from '@material-ui/icons/Edit';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { DataGrid } from '@material-ui/data-grid';
 import { Radius } from '../models/radius';
 import { Domain } from '../models/domain';
 import { j } from '../jinaga-config';
 import { RadiusDeleted } from '../models/radius-deleted';
+import SnackBarAlert from './snack-bar-alert';
+import type { Color } from '@material-ui/lab/Alert'
 
 const useStyles = makeStyles(() => ({
     table: {
@@ -46,43 +47,52 @@ const AdminRadii = () => {
     }
 
     const [open, setOpen] = useState(false);
+    const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
     const [radiiInputxText, setRadiiInputxText] = useState('');
+    const [selectedRadius, setSelectedRadius] = useState<Radius>(() => new Radius("", new Date(), domain));
     const [tableDataIsLoading, setTableDataIsLoading] = useState(true);
-    const [tableData, setTableData] = useState<any>(() => {
+    const [tableData, setTableData] = useState<Radius[]>([]);
+    const [openSnackBarAlert, setOpenSnackBarAlert] = useState(false);
+    const [snackBarAlertMessage, setSnackBarAlertMessage] = useState("");
+    const [snackBarAlertSeverity, setSnackBarAlertSeverity] = useState<Color | undefined>("info");
+
+    useEffect(() => {
         fetchAllRadii().then(radii => {
             setTableData(radii);
             setTableDataIsLoading(false);
         });
-    });
+    })
+
 
     const handleRadiiTextInputChange = (event: any) => {
         setRadiiInputxText(event.target.value);
     };
+    
+    const displayAlert = (message: string, severity: Color) => {
+        setSnackBarAlertMessage(message);
+        setSnackBarAlertSeverity(severity);
+        setOpenSnackBarAlert(true);
+    }
 
-    const handleAddRadius = async (event: { preventDefault: () => void; }) => {
+    const handleSubmitAddRadius = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
         if (tableData.some((radius: Radius) => radius.radius === radiiInputxText)) {
-            alert('Radius already exists!'); // Remove the alert and use maybe a snackbar or better notification
+            displayAlert('Radius already exists!', 'error');
         } else {
             await j.fact(new Radius(radiiInputxText, new Date(), domain));
             fetchAllRadii().then(radii => setTableData(radii));
-            // TODO
-            // Display sucess message or snackbar
+            displayAlert('Radius added successfully', 'success');
             setOpen(false);
         }
     }
 
-    const handleDeleteRadius = async (radius: Radius) => {
-        await j.fact(new RadiusDeleted(radius, new Date()));
+    const handleSubmitDeleteRadius = async (event: { preventDefault: () => void; }) => {
+        event.preventDefault();
+        await j.fact(new RadiusDeleted(selectedRadius, new Date()));
         fetchAllRadii().then(radii => setTableData(radii));
-    }
-
-    if (tableDataIsLoading) {
-        return (
-            <div className={classes.loading}>
-                <CircularProgress size="3rem" />
-            </div>
-        )
+        setSelectedRadius(new Radius("", new Date(), domain));
+        displayAlert('Radius deleted successfully', 'success');
+        setOpenDeleteConfirmDialog(false);
     }
 
     const handleClickOpen = () => {
@@ -93,6 +103,22 @@ const AdminRadii = () => {
         setOpen(false);
     };
 
+    const handleoOpenDeleteConfirmDialog = (radius: Radius) => {
+        setSelectedRadius(radius);
+        setOpenDeleteConfirmDialog(true);
+    }
+
+    const handleCloseDeleteConfirmDialog = () => {
+        setOpenDeleteConfirmDialog(false);
+    };
+
+    const handleCloseSnackBarAlert = (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackBarAlert(false);
+    };
+
     const columns = [
         {
             field: "radiusValue",
@@ -100,15 +126,12 @@ const AdminRadii = () => {
             flex: 1,
         },
         {
-            field: "Actions",
+            field: "Delete",
             renderCell: (cellValues: any) => {
                 return (
                     <>
                         <IconButton>
-                            <EditIcon color="primary" onClick={() => console.log(cellValues.row.radius)} />
-                        </IconButton>
-                        <IconButton>
-                            <DeleteIcon color="secondary" onClick={() => handleDeleteRadius(cellValues.row.radius)} />
+                            <DeleteIcon color="secondary" onClick={() => handleoOpenDeleteConfirmDialog(cellValues.row.radius)} />
                         </IconButton>
                     </>
 
@@ -119,6 +142,14 @@ const AdminRadii = () => {
             filterable: false,
         }
     ];
+
+    if (tableDataIsLoading) {
+        return (
+            <div className={classes.loading}>
+                <CircularProgress size="3rem" />
+            </div>
+        )
+    }
 
     return (
         <div>
@@ -138,7 +169,7 @@ const AdminRadii = () => {
                 pageSize={10}
             />
             <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleAddRadius}>
+                <form onSubmit={handleSubmitAddRadius}>
                     <DialogTitle>Add Radius</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
@@ -162,6 +193,26 @@ const AdminRadii = () => {
                     </DialogActions>
                 </form>
             </Dialog>
+            <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} maxWidth="sm" fullWidth={true}>
+                <form onSubmit={handleSubmitDeleteRadius}>
+                    <DialogTitle>Delete Radius</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            Are you sure that you want to delete <strong>{selectedRadius.radius}</strong> radius?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseDeleteConfirmDialog}>Cancel</Button>
+                        <Button type="submit" color="secondary">Delete</Button>
+                    </DialogActions>
+                </form>
+            </Dialog>
+            <SnackBarAlert
+                open={openSnackBarAlert}
+                message={snackBarAlertMessage}
+                severity={snackBarAlertSeverity}
+                handleClose={handleCloseSnackBarAlert}
+            />
         </div>
     );
 }
