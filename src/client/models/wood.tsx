@@ -11,14 +11,16 @@ export class Wood {
     isNeckWood: boolean;
     isBodyWood: boolean;
     isLaminatedTopWood: boolean;
+    isFretboardWood: boolean;
 
-    constructor(wood: string, isNeckWood: boolean, isBodyWood: boolean, isLaminatedTopWood: boolean, created: Date | string, domain: Domain) { 
+    constructor(wood: string, isNeckWood: boolean, isBodyWood: boolean, isLaminatedTopWood: boolean, isFretboardWood: boolean, created: Date | string, domain: Domain) { 
         this.wood = wood;
         this.created = created;
         this.domain = domain;
         this.isNeckWood = isNeckWood;
         this.isBodyWood = isBodyWood;
         this.isLaminatedTopWood = isLaminatedTopWood;
+        this.isFretboardWood = isFretboardWood;
     }
 
     static getAllAvailableWoods(domain: Domain) {

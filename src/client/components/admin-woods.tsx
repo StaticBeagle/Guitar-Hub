@@ -19,6 +19,8 @@ import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import { WoodDeleted } from '../models/wood-deleted';
+import SnackBarAlert from './snack-bar-alert';
+import type { Color } from '@material-ui/lab/Alert'
 
 const useStyles = makeStyles(() => ({
     table: {
@@ -48,21 +50,27 @@ const AdminWoods = () => {
     }
 
     const [open, setOpen] = useState(false);
+    const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
     const [woodsInputxText, setWoodsInputxText] = useState('');
     const [tableDataIsLoading, setTableDataIsLoading] = useState(true);
     const [tableData, setTableData] = useState<Wood[]>([]);
-    const [checkBoxStates, setCheckBoxStates] = React.useState({
-        checkedBody: true,
+    const [checkBoxStates, setCheckBoxStates] = useState({
+        checkedBody: false,
         checkedNeck: false,
         checkedLaminatedTop: false,
+        checkedFretboard: false
     });
+    const [selectedWood, setSelectedWood] = useState<Wood>(new Wood("", false, false, false, false, new Date(), domain));
+    const [openSnackBarAlert, setOpenSnackBarAlert] = useState(false);
+    const [snackBarAlertMessage, setSnackBarAlertMessage] = useState("");
+    const [snackBarAlertSeverity, setSnackBarAlertSeverity] = useState<Color | undefined>("info");
 
     useEffect(() => {
         fetchAllWoods().then(woods => {
             setTableData(woods);
             setTableDataIsLoading(false);
         });
-    })
+    }, [])
 
     const handleChangeCheckBoxes = (event: React.ChangeEvent<HTMLInputElement>) => {
         setCheckBoxStates({ ...checkBoxStates, [event.target.name]: event.target.checked });
@@ -72,25 +80,36 @@ const AdminWoods = () => {
         setWoodsInputxText(event.target.value);
     };
 
-    const handleAddWood = async (event: { preventDefault: () => void; }) => {
+    const displayAlert = (message: string, severity: Color) => {
+        setSnackBarAlertMessage(message);
+        setSnackBarAlertSeverity(severity);
+        setOpenSnackBarAlert(true);
+    }
+
+    const handleSubmitAddWood = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
         if (tableData.some((wood: Wood) => wood.wood.toLowerCase() === woodsInputxText.toLowerCase())) {
-            alert('Wood already exists!'); // Remove the alert and use maybe a snackbar or better notification
+            displayAlert('Wood already exists!', 'error');
         } else {
             const isNeckChecked = checkBoxStates.checkedNeck;
             const isBodyChecked = checkBoxStates.checkedBody;
             const isLaminatedTopChecked = checkBoxStates.checkedLaminatedTop;
-            await j.fact(new Wood(woodsInputxText, isNeckChecked, isBodyChecked, isLaminatedTopChecked, new Date(), domain));
-            fetchAllWoods().then(woods => setTableData(woods));
-            // TODO
-            // Dispatch "success message or snackbar"
+            const isFretboardCheckec = checkBoxStates.checkedFretboard
+            const wood = await j.fact(new Wood(woodsInputxText, isNeckChecked, isBodyChecked, isLaminatedTopChecked, isFretboardCheckec, new Date(), domain));
+            let woods = [...tableData, wood];
+            woods.sort((a, b) => a.wood.localeCompare(b.wood))
+            setTableData(woods)
+            displayAlert('Wood added successfully', 'success');
             setOpen(false);
         }
     }
 
-    const handleDeleteWood = async (wood: Wood) => {
-        await j.fact(new WoodDeleted(wood, new Date()));
-        fetchAllWoods().then(woods => setTableData(woods));
+    const handleSubmitDeleteWood = async (event: { preventDefault: () => void; }) => {
+        event.preventDefault();
+        await j.fact(new WoodDeleted(selectedWood, new Date()));
+        setTableData(tableData.filter((wood: Wood) => wood.wood !== selectedWood.wood));
+        displayAlert('Wood deleted successfully', 'success');
+        setOpenDeleteConfirmDialog(false);
     }
 
     if (tableDataIsLoading) {
@@ -103,15 +122,31 @@ const AdminWoods = () => {
 
     const handleClickOpen = () => {
         setCheckBoxStates({
-            checkedBody: true,
+            checkedBody: false,
             checkedNeck: false,
             checkedLaminatedTop: false,
+            checkedFretboard: false
         });
         setOpen(true);
     };
 
     const handleClose = () => {
         setOpen(false);
+    };
+
+    const handleoOpenDeleteConfirmDialog = () => {
+        setOpenDeleteConfirmDialog(true);
+    }
+
+    const handleCloseDeleteConfirmDialog = () => {
+        setOpenDeleteConfirmDialog(false);
+    };
+
+    const handleCloseSnackBarAlert = (event?: React.SyntheticEvent, reason?: string) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setOpenSnackBarAlert(false);
     };
 
     const columns = [
@@ -136,12 +171,17 @@ const AdminWoods = () => {
             flex: 1,
         },
         {
+            field: "isFretboardWood",
+            headerName: "Fretboard Wood",
+            flex: 0.75,
+        },
+        {
             field: "Delete",
-            renderCell: (cellValues: any) => {
+            renderCell: () => {
                 return (
                     <>
                         <IconButton>
-                            <DeleteIcon color="secondary" onClick={() => handleDeleteWood(cellValues.row.wood)} />
+                            <DeleteIcon color="secondary" onClick={handleoOpenDeleteConfirmDialog} />
                         </IconButton>
                     </>
 
@@ -167,14 +207,17 @@ const AdminWoods = () => {
                         isBodyWood: row.isBodyWood ? "Yes" : "No",
                         isNeckWood: row.isNeckWood ? "Yes" : "No",
                         isLaminatedTopWood: row.isLaminatedTopWood ? "Yes" : "No",
+                        isFretboardWood: row.isFretboardWood ? "Yes" : "No",
                         wood: row
                     }
                 })}
                 columns={columns}
                 pageSize={10}
+                onRowClick={(rowData) => setSelectedWood(rowData.row.wood)}
+                disableSelectionOnClick={true}
             />
             <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleAddWood}>
+                <form onSubmit={handleSubmitAddWood}>
                     <DialogTitle>Add Wood</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
@@ -209,6 +252,15 @@ const AdminWoods = () => {
                                         color="primary" />}
                                 label="Laminated Top"
                             />
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={checkBoxStates.checkedFretboard}
+                                        onChange={handleChangeCheckBoxes}
+                                        name="checkedFretboard"
+                                        color="primary" />}
+                                label="Fretboard"
+                            />
                         </FormGroup>
                         <TextField
                             autoFocus
@@ -228,6 +280,26 @@ const AdminWoods = () => {
                     </DialogActions>
                 </form>
             </Dialog>
+            <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} maxWidth="sm" fullWidth={true}>
+                <form onSubmit={handleSubmitDeleteWood}>
+                    <DialogTitle>Delete Radius</DialogTitle>
+                    <DialogContent>
+                        <DialogContentText>
+                            Are you sure that you want to delete <strong>{selectedWood.wood}</strong> wood?
+                        </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={handleCloseDeleteConfirmDialog}>Cancel</Button>
+                        <Button type="submit" color="secondary">Delete</Button>
+                    </DialogActions>
+                </form>
+            </Dialog>
+            <SnackBarAlert
+                open={openSnackBarAlert}
+                message={snackBarAlertMessage}
+                severity={snackBarAlertSeverity}
+                handleClose={handleCloseSnackBarAlert}
+            />
         </div>
     );
 }

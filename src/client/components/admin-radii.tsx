@@ -49,7 +49,7 @@ const AdminRadii = () => {
     const [open, setOpen] = useState(false);
     const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
     const [radiiInputxText, setRadiiInputxText] = useState('');
-    const [selectedRadius, setSelectedRadius] = useState<Radius>(() => new Radius("", new Date(), domain));
+    const [selectedRadius, setSelectedRadius] = useState<Radius>(new Radius("", new Date(), domain));
     const [tableDataIsLoading, setTableDataIsLoading] = useState(true);
     const [tableData, setTableData] = useState<Radius[]>([]);
     const [openSnackBarAlert, setOpenSnackBarAlert] = useState(false);
@@ -61,8 +61,7 @@ const AdminRadii = () => {
             setTableData(radii);
             setTableDataIsLoading(false);
         });
-    })
-
+    }, [])
 
     const handleRadiiTextInputChange = (event: any) => {
         setRadiiInputxText(event.target.value);
@@ -79,8 +78,10 @@ const AdminRadii = () => {
         if (tableData.some((radius: Radius) => radius.radius === radiiInputxText)) {
             displayAlert('Radius already exists!', 'error');
         } else {
-            await j.fact(new Radius(radiiInputxText, new Date(), domain));
-            fetchAllRadii().then(radii => setTableData(radii));
+            const radius = await j.fact(new Radius(radiiInputxText, new Date(), domain));
+            let radii = [...tableData, radius];
+            radii.sort((a, b) => a.radius.localeCompare(b.radius))
+            setTableData(radii);
             displayAlert('Radius added successfully', 'success');
             setOpen(false);
         }
@@ -89,8 +90,7 @@ const AdminRadii = () => {
     const handleSubmitDeleteRadius = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
         await j.fact(new RadiusDeleted(selectedRadius, new Date()));
-        fetchAllRadii().then(radii => setTableData(radii));
-        setSelectedRadius(new Radius("", new Date(), domain));
+        setTableData(tableData.filter((radius: Radius) => radius.radius !== selectedRadius.radius));
         displayAlert('Radius deleted successfully', 'success');
         setOpenDeleteConfirmDialog(false);
     }
@@ -103,8 +103,7 @@ const AdminRadii = () => {
         setOpen(false);
     };
 
-    const handleoOpenDeleteConfirmDialog = (radius: Radius) => {
-        setSelectedRadius(radius);
+    const handleoOpenDeleteConfirmDialog = () => {
         setOpenDeleteConfirmDialog(true);
     }
 
@@ -127,11 +126,11 @@ const AdminRadii = () => {
         },
         {
             field: "Delete",
-            renderCell: (cellValues: any) => {
+            renderCell: () => {
                 return (
                     <>
                         <IconButton>
-                            <DeleteIcon color="secondary" onClick={() => handleoOpenDeleteConfirmDialog(cellValues.row.radius)} />
+                            <DeleteIcon color="secondary" onClick={handleoOpenDeleteConfirmDialog} />
                         </IconButton>
                     </>
 
@@ -167,6 +166,8 @@ const AdminRadii = () => {
                 })}
                 columns={columns}
                 pageSize={10}
+                onRowClick={(rowData) => setSelectedRadius(rowData.row.radius)}
+                disableSelectionOnClick={true}
             />
             <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth={true}>
                 <form onSubmit={handleSubmitAddRadius}>
