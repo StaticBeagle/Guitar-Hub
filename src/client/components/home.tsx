@@ -6,6 +6,7 @@ import Tab from '@material-ui/core/Tab';
 import TabPanel from '../components/tab-panel';
 import AdminRadii from './admin-radii';
 import AdminWoods from './admin-woods';
+import AdminFrets from './admin-frets';
 
 const Home = () => {
 
@@ -28,6 +29,7 @@ const Home = () => {
                     <Tab label="Radii" />
                     <Tab label="Woods" />
                     <Tab label="Scales" />
+                    <Tab label="Frets" />
                 </Tabs>
             </Paper>
             <TabPanel value={value} index={0}>
@@ -35,6 +37,12 @@ const Home = () => {
             </TabPanel>
             <TabPanel value={value} index={1}>
                 <AdminWoods />
+            </TabPanel>
+            <TabPanel value={value} index={2}>
+                <AdminWoods />
+            </TabPanel>
+            <TabPanel value={value} index={3}>
+                <AdminFrets />
             </TabPanel>
         </Layout>
     )
