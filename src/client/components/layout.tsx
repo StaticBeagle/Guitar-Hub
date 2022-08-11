@@ -147,6 +147,14 @@ const Layout: FC<ChildrenProps> = (props) => {
                 <ListItemText primary={"My Gear"} />
               </ListItem>
             )}
+
+            <ListItem button component={NavLink} to="/tempView">
+              <ListItemIcon>
+                <DashboardIcon />
+              </ListItemIcon>
+              <ListItemText primary={"My Gear"} />
+            </ListItem>
+
             <ListItem button component={NavLink} to="/users">
               <ListItemIcon>
                 <PeopleIcon />

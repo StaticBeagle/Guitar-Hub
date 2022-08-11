@@ -7,6 +7,7 @@ import { Outlet, Link } from "react-router-dom";
 import Home from "./home";
 import Users from "./users";
 import Admins from "./admins"
+import UserGuitarView from "./user-guitar-view";
 
 
 export const App = ({ }) => {
@@ -16,6 +17,7 @@ export const App = ({ }) => {
                 <Route path="/" element={<Home />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/users/:id" element={<Users />} />
+                <Route path="/tempView" element={<UserGuitarView />} />
                 <Route path="/admins" element={<Admins />} />
             </Routes>
         </>
