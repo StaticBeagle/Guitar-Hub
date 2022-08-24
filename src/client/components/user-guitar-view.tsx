@@ -3,6 +3,7 @@ import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Layout from './layout';
+import Typography from '@material-ui/core/Typography';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -29,7 +30,11 @@ export default function UserGuitarView() {
             <Paper className={classes.paper}><a href="https://placeholder.com"><img src="https://via.placeholder.com/350x560"></img></a></Paper>
           </Grid>
           <Grid item xs={12} lg={9}>
-            <Paper className={classes.paper}>xs=12 sm=6</Paper>
+            <Paper className={classes.paper}>
+              <Typography variant="h4" gutterBottom>
+                Body
+              </Typography>
+            </Paper>
           </Grid>
           <Grid item xs={12}>
             <Paper className={classes.paper}>xs=6 sm=3</Paper>
