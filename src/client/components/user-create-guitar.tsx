@@ -1,221 +1,196 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import Button from '@material-ui/core/Button'
+import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import Paper from '@material-ui/core/Paper';
+import Grid from '@material-ui/core/Grid';
+import Layout from './layout';
+import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import { makeStyles } from '@material-ui/core/styles';
-import { IconButton } from '@material-ui/core';
-import DeleteIcon from '@material-ui/icons/Delete';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import { DataGrid } from '@material-ui/data-grid';
-import { Radius } from '../models/radius';
+import Button from '@material-ui/core/Button'
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import { Domain } from '../models/domain';
-import { j } from '../jinaga-config';
-import { RadiusDeleted } from '../models/radius-deleted';
-import SnackBarAlert from './snack-bar-alert';
-import type { Color } from '@material-ui/lab/Alert'
+import { getAllAvailableWoodsInDomain } from './admin-woods';
+import { getAllAvailablePickupConfigurationsInDomain } from './admin-pickup-configurations';
+import { getAllAvailableGuitarStylesInDomain } from './admin-guitar-styles';
+import { getAllAvailableGuitarFinishesInDomain } from './admin-guitar-finishes';
 
-const useStyles = makeStyles(() => ({
-    table: {
-        height: 630
-    },
-    addRadiusButtonContainer: {
-        textAlign: 'right',
-        marginBottom: '10px',
-        marginTop: '10px'
-    },
-    loading: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-    }
-}));
 
-const AdminRadii = () => {
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        root: {
+            flexGrow: 1,
+        },
+        paper: {
+            padding: theme.spacing(2),
+            textAlign: 'center',
+            color: theme.palette.text.secondary,
+            minHeight: '600px'
+        },
+        bodyDiv: {
+            textAlign: 'left',
+            width: 300
+        },
+        checkBox: {
+            paddingTop: 20
+        }
+    }),
+);
 
-    const domain = Domain.Instance;
+export default function UserCreateGuitarView() {
     const classes = useStyles();
 
-    const fetchAllRadii = async () => {
-        let radii = await j.query(domain, j.for(Radius.getAllAvailableRadii));
-        radii.sort((a, b) => a.radius.localeCompare(b.radius));
-        return radii;
-    }
+    const domain = Domain.Instance;
 
-    const [open, setOpen] = useState(false);
-    const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
-    const [radiiInputxText, setRadiiInputxText] = useState('');
-    const [selectedRadius, setSelectedRadius] = useState<Radius>(new Radius("", new Date(), domain));
-    const [tableDataIsLoading, setTableDataIsLoading] = useState(true);
-    const [tableData, setTableData] = useState<Radius[]>([]);
-    const [openSnackBarAlert, setOpenSnackBarAlert] = useState(false);
-    const [snackBarAlertMessage, setSnackBarAlertMessage] = useState("");
-    const [snackBarAlertSeverity, setSnackBarAlertSeverity] = useState<Color | undefined>("info");
+    const [bodyWoods, setBodyWoods] = useState<String[]>([]);
+    const [topWoods, setTopWoods] = useState<String[]>([]);
+    const [neckWoods, setNeckWoods] = useState<String[]>([]);
+    const [fretboardWoods, setFretboardWoods] = useState<String[]>([]);
+
+    const [pickupConfigurations, setPickupConfigurations] = useState<String[]>([]);
+
+    const [guitarStyles, setGuitarStyles] = useState<String[]>([]);
+
+    const [guitarFinishes, setGuitarFinishes] = useState<String[]>([]);
+
+    const [state, setState] = React.useState({
+        checkedOnePiece: false,
+        checkedB: true,
+        checkedF: true,
+        checkedG: true,
+    });
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setState({ ...state, [event.target.name]: event.target.checked });
+    };
 
     useEffect(() => {
-        fetchAllRadii().then(radii => {
-            setTableData(radii);
-            setTableDataIsLoading(false);
+        getAllAvailableWoodsInDomain(domain).then(woods => {
+            setBodyWoods(woods.filter(wood => wood.isBodyWood).map(wood => wood.wood));
+            setTopWoods(woods.filter(wood => wood.isLaminatedTopWood).map(wood => wood.wood));
+            setNeckWoods(woods.filter(wood => wood.isNeckWood).map(wood => wood.wood));
+            setFretboardWoods(woods.filter(wood => wood.isFretboardWood).map(wood => wood.wood));
+        });
+
+        getAllAvailablePickupConfigurationsInDomain(domain).then(configurations => {
+            setPickupConfigurations(configurations.map(configuration => configuration.configuration));
+        });
+
+        getAllAvailableGuitarStylesInDomain(domain).then(styles => {
+            setGuitarStyles(styles.map(style => style.style));
+        });
+
+        getAllAvailableGuitarFinishesInDomain(domain).then(finishes => {
+            setGuitarFinishes(finishes.map(finish => finish.finish));
         });
     }, [])
 
-    const handleRadiiTextInputChange = (event: any) => {
-        setRadiiInputxText(event.target.value);
-    };
-    
-    const displayAlert = (message: string, severity: Color) => {
-        setSnackBarAlertMessage(message);
-        setSnackBarAlertSeverity(severity);
-        setOpenSnackBarAlert(true);
-    }
-
-    const handleSubmitAddRadius = async (event: { preventDefault: () => void; }) => {
-        event.preventDefault();
-        if (tableData.some((radius: Radius) => radius.radius === radiiInputxText)) {
-            displayAlert('Radius already exists!', 'error');
-        } else {
-            const radius = await j.fact(new Radius(radiiInputxText, new Date(), domain));
-            let radii = [...tableData, radius];
-            radii.sort((a, b) => a.radius.localeCompare(b.radius))
-            setTableData(radii);
-            displayAlert('Radius added successfully', 'success');
-            setOpen(false);
-        }
-    }
-
-    const handleSubmitDeleteRadius = async (event: { preventDefault: () => void; }) => {
-        event.preventDefault();
-        await j.fact(new RadiusDeleted(selectedRadius, new Date()));
-        setTableData(tableData.filter((radius: Radius) => radius.radius !== selectedRadius.radius));
-        displayAlert('Radius deleted successfully', 'success');
-        setOpenDeleteConfirmDialog(false);
-    }
-
-    const handleClickOpen = () => {
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    const handleoOpenDeleteConfirmDialog = () => {
-        setOpenDeleteConfirmDialog(true);
-    }
-
-    const handleCloseDeleteConfirmDialog = () => {
-        setOpenDeleteConfirmDialog(false);
-    };
-
-    const handleCloseSnackBarAlert = (event?: React.SyntheticEvent, reason?: string) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setOpenSnackBarAlert(false);
-    };
-
-    const columns = [
-        {
-            field: "radiusValue",
-            headerName: "Radius",
-            flex: 1,
-        },
-        {
-            field: "Delete",
-            renderCell: () => {
-                return (
-                    <>
-                        <IconButton>
-                            <DeleteIcon color="secondary" onClick={handleoOpenDeleteConfirmDialog} />
-                        </IconButton>
-                    </>
-
-                );
-            },
-            flex: 1,
-            sortable: false,
-            filterable: false,
-        }
-    ];
-
-    if (tableDataIsLoading) {
-        return (
-            <div className={classes.loading}>
-                <CircularProgress size="3rem" />
-            </div>
-        )
-    }
-
     return (
-        <div>
-            <div className={classes.addRadiusButtonContainer}>
-                <Button variant="contained" color="primary" onClick={handleClickOpen}>Add radius</Button>
-            </div>
-            <DataGrid
-                className={classes.table}
-                rows={tableData.map((row: Radius, i: number) => {
-                    return {
-                        id: i,
-                        radiusValue: row.radius,
-                        radius: row
-                    }
-                })}
-                columns={columns}
-                pageSize={10}
-                onRowClick={(rowData) => setSelectedRadius(rowData.row.radius)}
-                disableSelectionOnClick={true}
-            />
-            <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleSubmitAddRadius}>
-                    <DialogTitle>Add Radius</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>
-                            Radii can be compound or straight.
-                        </DialogContentText>
-                        <TextField
-                            autoFocus
-                            margin="dense"
-                            id="name"
-                            label="Radius"
-                            type="text"
-                            fullWidth
-                            variant="standard"
-                            onInput={handleRadiiTextInputChange}
-                            required
-                        />
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleClose}>Cancel</Button>
-                        <Button type="submit">Add</Button>
-                    </DialogActions>
-                </form>
-            </Dialog>
-            <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleSubmitDeleteRadius}>
-                    <DialogTitle>Delete Radius</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText>
-                            Are you sure that you want to delete <strong>{selectedRadius.radius}</strong> radius?
-                        </DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDeleteConfirmDialog}>Cancel</Button>
-                        <Button type="submit" color="secondary">Delete</Button>
-                    </DialogActions>
-                </form>
-            </Dialog>
-            <SnackBarAlert
-                open={openSnackBarAlert}
-                message={snackBarAlertMessage}
-                severity={snackBarAlertSeverity}
-                handleClose={handleCloseSnackBarAlert}
-            />
-        </div>
+        <Layout header="Create A Guitar">
+            <form className={classes.root}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12} lg={3}>
+                        <Paper className={classes.paper}><a href="https://placeholder.com"><img src="https://via.placeholder.com/350x560"></img></a></Paper>
+                    </Grid>
+                    <Grid item xs={12} lg={9}>
+                        <Paper className={classes.paper}>
+                            <Typography variant="h4" gutterBottom align='left'>
+                                Body
+                            </Typography>
+                            <div className={classes.bodyDiv}>
+                                <Autocomplete
+                                    id="body-wood-input"
+                                    freeSolo
+                                    options={bodyWoods}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Body Wood" margin="normal" required />
+                                    )}
+                                />
+                                <Autocomplete
+                                    id="top-wood-input"
+                                    freeSolo
+                                    disabled={state.checkedOnePiece}
+                                    options={topWoods}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Top Wood" margin="normal" required disabled={state.checkedOnePiece} />
+                                    )}
+                                />
+                                <FormControlLabel
+                                    className={classes.checkBox}
+                                    control={
+                                        <Checkbox
+                                            checked={state.checkedOnePiece}
+                                            onChange={handleChange}
+                                            name="checkedOnePiece"
+                                            color="primary"
+                                        />
+                                    }
+                                    label="One Piece"
+                                />
+                                <Autocomplete
+                                    id="neck-pickup-input"
+                                    options={pickupConfigurations}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Neck Pickup" margin="normal" required />
+                                    )}
+                                />
+                                <Autocomplete
+                                    id="middle-pickup-input"
+                                    options={pickupConfigurations}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Middle Pickup" margin="normal" required />
+                                    )}
+                                />
+                                <Autocomplete
+                                    id="bridge-pickup-input"
+                                    options={pickupConfigurations}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Bridge Pickup" margin="normal" required />
+                                    )}
+                                />
+                                <Autocomplete
+                                    id="guitar-style-input"
+                                    freeSolo
+                                    options={guitarStyles}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Body Style" margin="normal" required />
+                                    )}
+                                />
+                                <Autocomplete
+                                    id="color-top-input"
+                                    freeSolo
+                                    options={guitarFinishes}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Top Color" margin="normal" required />
+                                    )}
+                                />
+                                <Autocomplete
+                                    id="color-back-input"
+                                    freeSolo
+                                    options={guitarFinishes}
+                                    renderInput={(params) => (
+                                        <TextField {...params} label="Back Color" margin="normal" required />
+                                    )}
+                                />
+                            </div>
+
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Paper className={classes.paper}>xs=6 sm=3</Paper>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Paper className={classes.paper}>xs=6 sm=3</Paper>
+                    </Grid>
+                </Grid>
+                <Button variant="contained" color="primary" type="submit">
+                    Save
+                </Button>
+                <Button variant="contained">
+                    Cancel
+                </Button>
+            </form>
+        </Layout>
     );
 }
-
-export default AdminRadii;

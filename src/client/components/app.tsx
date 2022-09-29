@@ -8,6 +8,7 @@ import Home from "./home";
 import Users from "./users";
 import Admins from "./admins"
 import UserGuitarView from "./user-guitar-view";
+import UserCreateGuitarView from "./user-create-guitar"
 
 
 export const App = ({ }) => {
@@ -18,6 +19,7 @@ export const App = ({ }) => {
                 <Route path="/users" element={<Users />} />
                 <Route path="/users/:id" element={<Users />} />
                 <Route path="/tempView" element={<UserGuitarView />} />
+                <Route path="/create-guitar" element={<UserCreateGuitarView />} />
                 <Route path="/admins" element={<Admins />} />
             </Routes>
         </>

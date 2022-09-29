@@ -1,5 +1,4 @@
-import { ensure, Jinaga as j } from "jinaga";
-import { Specification } from 'jinaga/dist/types/query/query-parser';
+import { Jinaga as j } from "jinaga";
 import {Domain} from './domain';
 import {RadiusDeleted} from './radius-deleted';
 
