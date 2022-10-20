@@ -7,6 +7,9 @@ import TabPanel from '../components/tab-panel';
 import AdminRadii from './admin-radii';
 import AdminWoods from './admin-woods';
 import AdminFrets from './admin-frets';
+import AdminPickupConfigurations from './admin-pickup-configurations';
+import AdminGuitarStyles from './admin-guitar-styles';
+import AdminGuitarFinishes from './admin-guitar-finishes';
 
 const Home = () => {
 
@@ -30,6 +33,9 @@ const Home = () => {
                     <Tab label="Woods" />
                     <Tab label="Scales" />
                     <Tab label="Frets" />
+                    <Tab label="Pickup Configurations" />
+                    <Tab label="Body Styles" />
+                    <Tab label="Guitar Finishes" />
                 </Tabs>
             </Paper>
             <TabPanel value={value} index={0}>
@@ -43,6 +49,15 @@ const Home = () => {
             </TabPanel>
             <TabPanel value={value} index={3}>
                 <AdminFrets />
+            </TabPanel>
+            <TabPanel value={value} index={4}>
+                <AdminPickupConfigurations />
+            </TabPanel>
+            <TabPanel value={value} index={5}>
+                <AdminGuitarStyles />
+            </TabPanel>
+            <TabPanel value={value} index={6}>
+                <AdminGuitarFinishes />
             </TabPanel>
         </Layout>
     )

@@ -155,6 +155,13 @@ const Layout: FC<ChildrenProps> = (props) => {
               <ListItemText primary={"My Gear"} />
             </ListItem>
 
+            <ListItem button component={NavLink} to="/create-guitar">
+              <ListItemIcon>
+                <DashboardIcon />
+              </ListItemIcon>
+              <ListItemText primary={"Create Guitar"} />
+            </ListItem>
+
             <ListItem button component={NavLink} to="/users">
               <ListItemIcon>
                 <PeopleIcon />

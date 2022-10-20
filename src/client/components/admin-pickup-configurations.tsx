@@ -12,18 +12,18 @@ import { IconButton } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { DataGrid } from '@material-ui/data-grid';
+import { PickupConfiguration } from '../models/pickup-configuration';
 import { Domain } from '../models/domain';
 import { j } from '../jinaga-config';
+import { PickupConfigurationDeleted } from '../models/pickup-configuration-deleted';
 import SnackBarAlert from './snack-bar-alert';
 import type { Color } from '@material-ui/lab/Alert'
-import { Fret } from '../models/fret';
-import { FretDeleted } from '../models/fret-deleted';
 
 const useStyles = makeStyles(() => ({
     table: {
         height: 630
     },
-    addFretContainer: {
+    addPickupConfigurationButtonContainer: {
         textAlign: 'right',
         marginBottom: '10px',
         marginTop: '10px'
@@ -35,42 +35,40 @@ const useStyles = makeStyles(() => ({
     }
 }));
 
-export const getAllAvailableFretSizesInDomain = async (domain: Domain) => {
-    let frets = await j.query(domain, j.for(Fret.getAllAvailableFrets));
-    frets.sort((a, b) => a.fret.localeCompare(b.fret));
-    return frets;
+export const getAllAvailablePickupConfigurationsInDomain = async (domain: Domain) => {
+    let configurations = await j.query(domain, j.for(PickupConfiguration.getAllAvailablePickupConfigurations));
+    return configurations; 
 }
 
-const AdminFrets = () => {
+const AdminPickupConfigurations = () => {
 
     const domain = Domain.Instance;
     const classes = useStyles();
 
-    const fetchAllFrets = async () => {
-        let frets = await j.query(domain, j.for(Fret.getAllAvailableFrets));
-        frets.sort((a, b) => a.fret.localeCompare(b.fret));
-        return frets;
+    const fetchAllPickupConfigurations = async () => {
+        let pickupConfigurations = await j.query(domain, j.for(PickupConfiguration.getAllAvailablePickupConfigurations));
+        return pickupConfigurations;
     }
 
     const [open, setOpen] = useState(false);
     const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
-    const [fretInputText, setFretInputText] = useState('');
-    const [selectedFret, setSelectedFret] = useState<Fret>(new Fret("", new Date(), domain));
+    const [pickupConfigurationsInputxText, setPickupConfigurationsInputxText] = useState('');
+    const [selectedPickupConfiguration, setSelectedPickupConfiguration] = useState<PickupConfiguration>(new PickupConfiguration("", new Date(), domain));
     const [tableDataIsLoading, setTableDataIsLoading] = useState(true);
-    const [tableData, setTableData] = useState<Fret[]>([]);
+    const [tableData, setTableData] = useState<PickupConfiguration[]>([]);
     const [openSnackBarAlert, setOpenSnackBarAlert] = useState(false);
     const [snackBarAlertMessage, setSnackBarAlertMessage] = useState("");
     const [snackBarAlertSeverity, setSnackBarAlertSeverity] = useState<Color | undefined>("info");
 
     useEffect(() => {
-        fetchAllFrets().then(frets => {
-            setTableData(frets);
+        fetchAllPickupConfigurations().then(pickupConfigurations => {
+            setTableData(pickupConfigurations);
             setTableDataIsLoading(false);
         });
     }, [])
 
-    const handleRadiiTextInputChange = (event: any) => {
-        setFretInputText(event.target.value);
+    const handlePickupConfigurationsTextInputChange = (event: any) => {
+        setPickupConfigurationsInputxText(event.target.value);
     };
     
     const displayAlert = (message: string, severity: Color) => {
@@ -79,25 +77,25 @@ const AdminFrets = () => {
         setOpenSnackBarAlert(true);
     }
 
-    const handleSubmitAddFret = async (event: { preventDefault: () => void; }) => {
+    const handleSubmitAddPickupConfiguration = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
-        if (tableData.some((fret: Fret) => fret.fret === fretInputText)) {
-            displayAlert('Fret already exists!', 'error');
+        if (tableData.some((pickupConfiguration: PickupConfiguration) => pickupConfiguration.configuration === pickupConfigurationsInputxText)) {
+            displayAlert('Pickup Configuration already exists!', 'error');
         } else {
-            const fret = await j.fact(new Fret(fretInputText, new Date(), domain));
-            let frets = [...tableData, fret];
-            frets.sort((a, b) => a.fret.localeCompare(b.fret));
-            setTableData(frets);
-            displayAlert('Fret added successfully', 'success');
+            const pickupConfiguration = await j.fact(new PickupConfiguration(pickupConfigurationsInputxText, new Date(), domain));
+            let pickupConfigurations = [...tableData, pickupConfiguration];
+            pickupConfigurations.sort((a, b) => a.configuration.localeCompare(b.configuration))
+            setTableData(pickupConfigurations);
+            displayAlert('Pickup Configuration added successfully', 'success');
             setOpen(false);
         }
     }
 
-    const handleSubmitDeleteFret = async (event: { preventDefault: () => void; }) => {
+    const handleSubmitDeletePickupConfiguration = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
-        await j.fact(new FretDeleted(selectedFret, new Date()));
-        setTableData(tableData.filter((fret: Fret) => fret.fret !== selectedFret.fret));
-        displayAlert('Fret deleted successfully', 'success');
+        await j.fact(new PickupConfigurationDeleted(selectedPickupConfiguration, new Date()));
+        setTableData(tableData.filter((pickupConfiguration: PickupConfiguration) => pickupConfiguration.configuration !== selectedPickupConfiguration.configuration));
+        displayAlert('Pickup Configuration deleted successfully', 'success');
         setOpenDeleteConfirmDialog(false);
     }
 
@@ -126,8 +124,8 @@ const AdminFrets = () => {
 
     const columns = [
         {
-            field: "fretValue",
-            headerName: "Fret",
+            field: "pickupConfigurationValue",
+            headerName: "Pickup Configuration",
             flex: 1,
         },
         {
@@ -158,39 +156,39 @@ const AdminFrets = () => {
 
     return (
         <div>
-            <div className={classes.addFretContainer}>
-                <Button variant="contained" color="primary" onClick={handleClickOpen}>Add Fret</Button>
+            <div className={classes.addPickupConfigurationButtonContainer}>
+                <Button variant="contained" color="primary" onClick={handleClickOpen}>Add Pickup Configuration</Button>
             </div>
             <DataGrid
                 className={classes.table}
-                rows={tableData.map((row: Fret, i: number) => {
+                rows={tableData.map((row: PickupConfiguration, i: number) => {
                     return {
                         id: i,
-                        fretValue: row.fret,
-                        fret: row
+                        pickupConfigurationValue: row.configuration,
+                        pickupConfiguration: row
                     }
                 })}
                 columns={columns}
                 pageSize={10}
-                onRowClick={(rowData) => setSelectedFret(rowData.row.fret)}
+                onRowClick={(rowData) => setSelectedPickupConfiguration(rowData.row.pickupConfiguration)}
                 disableSelectionOnClick={true}
             />
             <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleSubmitAddFret}>
-                    <DialogTitle>Add Fret</DialogTitle>
+                <form onSubmit={handleSubmitAddPickupConfiguration}>
+                    <DialogTitle>Add Pickup Configuration</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            Enter the material and size of the fret.
+                            Pickup Configurations can be any type of pickup route.
                         </DialogContentText>
                         <TextField
                             autoFocus
                             margin="dense"
                             id="name"
-                            label="Fret"
+                            label="Pickup Configuration"
                             type="text"
                             fullWidth
                             variant="standard"
-                            onInput={handleRadiiTextInputChange}
+                            onInput={handlePickupConfigurationsTextInputChange}
                             required
                         />
                     </DialogContent>
@@ -201,11 +199,11 @@ const AdminFrets = () => {
                 </form>
             </Dialog>
             <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleSubmitDeleteFret}>
-                    <DialogTitle>Delete Fret</DialogTitle>
+                <form onSubmit={handleSubmitDeletePickupConfiguration}>
+                    <DialogTitle>Delete PickupConfiguration</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            Are you sure that you want to delete <strong>{selectedFret.fret}</strong> Fret?
+                            Are you sure that you want to delete <strong>{selectedPickupConfiguration.configuration}</strong> pickup configuration?
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
@@ -224,4 +222,4 @@ const AdminFrets = () => {
     );
 }
 
-export default AdminFrets;
+export default AdminPickupConfigurations;

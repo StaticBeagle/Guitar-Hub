@@ -38,6 +38,12 @@ const useStyles = makeStyles(() => ({
     }
 }));
 
+export const getAllAvailableWoodsInDomain = async (domain: Domain) => {
+    let woods = await j.query(domain, j.for(Wood.getAllAvailableWoods));
+    woods.sort((a, b) => a.wood.localeCompare(b.wood));
+    return woods; 
+}
+
 const AdminWoods = () => {
 
     const domain = Domain.Instance;

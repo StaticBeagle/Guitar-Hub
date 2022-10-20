@@ -12,18 +12,18 @@ import { IconButton } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { DataGrid } from '@material-ui/data-grid';
+import { GuitarFinish } from '../models/guitar-finish';
 import { Domain } from '../models/domain';
 import { j } from '../jinaga-config';
+import { GuitarFinishDeleted } from '../models/guitar-finish-deleted';
 import SnackBarAlert from './snack-bar-alert';
 import type { Color } from '@material-ui/lab/Alert'
-import { Fret } from '../models/fret';
-import { FretDeleted } from '../models/fret-deleted';
 
 const useStyles = makeStyles(() => ({
     table: {
         height: 630
     },
-    addFretContainer: {
+    addGuitarFinishButtonContainer: {
         textAlign: 'right',
         marginBottom: '10px',
         marginTop: '10px'
@@ -35,42 +35,42 @@ const useStyles = makeStyles(() => ({
     }
 }));
 
-export const getAllAvailableFretSizesInDomain = async (domain: Domain) => {
-    let frets = await j.query(domain, j.for(Fret.getAllAvailableFrets));
-    frets.sort((a, b) => a.fret.localeCompare(b.fret));
-    return frets;
+export const getAllAvailableGuitarFinishesInDomain = async (domain: Domain) => {
+    let guitarFinishes = await j.query(domain, j.for(GuitarFinish.getAllAvailableGuitarFinishes));
+    guitarFinishes.sort((a, b) => a.finish.localeCompare(b.finish));
+    return guitarFinishes;
 }
 
-const AdminFrets = () => {
+const AdminGuitarFinishes = () => {
 
     const domain = Domain.Instance;
     const classes = useStyles();
 
-    const fetchAllFrets = async () => {
-        let frets = await j.query(domain, j.for(Fret.getAllAvailableFrets));
-        frets.sort((a, b) => a.fret.localeCompare(b.fret));
-        return frets;
+    const fetchAllGuitarFinishes = async () => {
+        let guitarFinishes = await j.query(domain, j.for(GuitarFinish.getAllAvailableGuitarFinishes));
+        guitarFinishes.sort((a, b) => a.finish.localeCompare(b.finish));
+        return guitarFinishes;
     }
 
     const [open, setOpen] = useState(false);
     const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
-    const [fretInputText, setFretInputText] = useState('');
-    const [selectedFret, setSelectedFret] = useState<Fret>(new Fret("", new Date(), domain));
+    const [guitarFinishInputxText, setGuitarFinishInputxText] = useState('');
+    const [selectedGuitarFinish, setSelectedGuitarFinish] = useState<GuitarFinish>(new GuitarFinish("", new Date(), domain));
     const [tableDataIsLoading, setTableDataIsLoading] = useState(true);
-    const [tableData, setTableData] = useState<Fret[]>([]);
+    const [tableData, setTableData] = useState<GuitarFinish[]>([]);
     const [openSnackBarAlert, setOpenSnackBarAlert] = useState(false);
     const [snackBarAlertMessage, setSnackBarAlertMessage] = useState("");
     const [snackBarAlertSeverity, setSnackBarAlertSeverity] = useState<Color | undefined>("info");
 
     useEffect(() => {
-        fetchAllFrets().then(frets => {
-            setTableData(frets);
+        fetchAllGuitarFinishes().then(guitarFinishes => {
+            setTableData(guitarFinishes);
             setTableDataIsLoading(false);
         });
     }, [])
 
-    const handleRadiiTextInputChange = (event: any) => {
-        setFretInputText(event.target.value);
+    const handleGuitarFinishTextInputChange = (event: any) => {
+        setGuitarFinishInputxText(event.target.value);
     };
     
     const displayAlert = (message: string, severity: Color) => {
@@ -79,25 +79,25 @@ const AdminFrets = () => {
         setOpenSnackBarAlert(true);
     }
 
-    const handleSubmitAddFret = async (event: { preventDefault: () => void; }) => {
+    const handleSubmitAddGuitarFinish = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
-        if (tableData.some((fret: Fret) => fret.fret === fretInputText)) {
-            displayAlert('Fret already exists!', 'error');
+        if (tableData.some((guitarFinish: GuitarFinish) => guitarFinish.finish === guitarFinishInputxText)) {
+            displayAlert('Guitar Finish already exists!', 'error');
         } else {
-            const fret = await j.fact(new Fret(fretInputText, new Date(), domain));
-            let frets = [...tableData, fret];
-            frets.sort((a, b) => a.fret.localeCompare(b.fret));
-            setTableData(frets);
-            displayAlert('Fret added successfully', 'success');
+            const guitarFinish = await j.fact(new GuitarFinish(guitarFinishInputxText, new Date(), domain));
+            let guitarFinishes = [...tableData, guitarFinish];
+            guitarFinishes.sort((a, b) => a.finish.localeCompare(b.finish))
+            setTableData(guitarFinishes);
+            displayAlert('Guitar Finish added successfully', 'success');
             setOpen(false);
         }
     }
 
-    const handleSubmitDeleteFret = async (event: { preventDefault: () => void; }) => {
+    const handleSubmitDeleteGuitarFinish = async (event: { preventDefault: () => void; }) => {
         event.preventDefault();
-        await j.fact(new FretDeleted(selectedFret, new Date()));
-        setTableData(tableData.filter((fret: Fret) => fret.fret !== selectedFret.fret));
-        displayAlert('Fret deleted successfully', 'success');
+        await j.fact(new GuitarFinishDeleted(selectedGuitarFinish, new Date()));
+        setTableData(tableData.filter((guitarFinish: GuitarFinish) => guitarFinish.finish !== selectedGuitarFinish.finish));
+        displayAlert('Guitar Finish deleted successfully', 'success');
         setOpenDeleteConfirmDialog(false);
     }
 
@@ -126,8 +126,8 @@ const AdminFrets = () => {
 
     const columns = [
         {
-            field: "fretValue",
-            headerName: "Fret",
+            field: "guitarFinishValue",
+            headerName: "Guitar Finish",
             flex: 1,
         },
         {
@@ -158,39 +158,39 @@ const AdminFrets = () => {
 
     return (
         <div>
-            <div className={classes.addFretContainer}>
-                <Button variant="contained" color="primary" onClick={handleClickOpen}>Add Fret</Button>
+            <div className={classes.addGuitarFinishButtonContainer}>
+                <Button variant="contained" color="primary" onClick={handleClickOpen}>Add Guitar Finish</Button>
             </div>
             <DataGrid
                 className={classes.table}
-                rows={tableData.map((row: Fret, i: number) => {
+                rows={tableData.map((row: GuitarFinish, i: number) => {
                     return {
                         id: i,
-                        fretValue: row.fret,
-                        fret: row
+                        guitarFinishValue: row.finish,
+                        guitarFinish: row
                     }
                 })}
                 columns={columns}
                 pageSize={10}
-                onRowClick={(rowData) => setSelectedFret(rowData.row.fret)}
+                onRowClick={(rowData) => setSelectedGuitarFinish(rowData.row.guitarFinish)}
                 disableSelectionOnClick={true}
             />
             <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleSubmitAddFret}>
-                    <DialogTitle>Add Fret</DialogTitle>
+                <form onSubmit={handleSubmitAddGuitarFinish}>
+                    <DialogTitle>Add Guitar Finish</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            Enter the material and size of the fret.
+                            Guitar Finish can be any color applied to a guitar.
                         </DialogContentText>
                         <TextField
                             autoFocus
                             margin="dense"
                             id="name"
-                            label="Fret"
+                            label="Guitar Finish"
                             type="text"
                             fullWidth
                             variant="standard"
-                            onInput={handleRadiiTextInputChange}
+                            onInput={handleGuitarFinishTextInputChange}
                             required
                         />
                     </DialogContent>
@@ -201,11 +201,11 @@ const AdminFrets = () => {
                 </form>
             </Dialog>
             <Dialog open={openDeleteConfirmDialog} onClose={handleCloseDeleteConfirmDialog} maxWidth="sm" fullWidth={true}>
-                <form onSubmit={handleSubmitDeleteFret}>
-                    <DialogTitle>Delete Fret</DialogTitle>
+                <form onSubmit={handleSubmitDeleteGuitarFinish}>
+                    <DialogTitle>Delete GuitarFinish</DialogTitle>
                     <DialogContent>
                         <DialogContentText>
-                            Are you sure that you want to delete <strong>{selectedFret.fret}</strong> Fret?
+                            Are you sure that you want to delete <strong>{selectedGuitarFinish.finish}</strong> guitar finish?
                         </DialogContentText>
                     </DialogContent>
                     <DialogActions>
@@ -224,4 +224,4 @@ const AdminFrets = () => {
     );
 }
 
-export default AdminFrets;
+export default AdminGuitarFinishes;
