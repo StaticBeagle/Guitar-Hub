@@ -22,10 +22,10 @@ export class GuitarFinish {
         }).suchThat(j.not(GuitarFinish.isDeleted));
     }
 
-    static isDeleted(configuration: GuitarFinish) {
+    static isDeleted(finish: GuitarFinish) {
         return j.exists({
             type: GuitarFinishDeleted.Type,
-            configuration: configuration
+            finish: finish
         });
     }
 }

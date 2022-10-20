@@ -35,6 +35,12 @@ const useStyles = makeStyles(() => ({
     }
 }));
 
+export const getAllAvailableFretSizesInDomain = async (domain: Domain) => {
+    let frets = await j.query(domain, j.for(Fret.getAllAvailableFrets));
+    frets.sort((a, b) => a.fret.localeCompare(b.fret));
+    return frets;
+}
+
 const AdminFrets = () => {
 
     const domain = Domain.Instance;
